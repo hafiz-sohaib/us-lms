@@ -1,0 +1,142 @@
+<%- include('../../../layout/header'); %>
+<%- include('../../components/mobile-nav'); %>
+<%- include('../../components/sidebar'); %>
+
+<style>
+
+.ql-toolbar.ql-snow {
+    border: 1px solid #dee2e6;
+    border-top-left-radius: 0.375rem;
+    border-top-right-radius: 0.375rem;
+}
+.ql-container{
+    height: 300px;
+    overflow-y: scroll;
+}
+.ql-container.ql-snow{
+    border: 1px solid #dee2e6;
+}
+
+</style>
+
+
+<main class="content" id="current_path" data-path="/admin<%= path %>">
+    <%- include('../../components/navbar'); %>
+
+    <div class="modal fade" id="notice-modal" tabindex="-1" aria-labelledby="notice-modal" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <form id="notice_form">
+                    <div class="modal-header">
+                        <h2 class="h6 modal-title">Upload Notice</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="notice_title">Title</label>
+                            <input type="text" class="form-control" name="notice_title" id="notice_title" required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="notice_roll">For</label>
+                            <select class="form-select" name="notice_roll" id="notice_roll" required>
+                                <option value="for-students">For Students</option>
+                                <option value="for-teachers">For Teachers</option>
+                                <option value="for-everyone">For Everyone</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="notice_periority">Set Periority</label>
+                            <div class="d-flex mt-3">
+                                <div class="form-check me-3">
+                                    <input class="form-check-input" type="radio" name="notice_periority" id="notice_periority" value="high" checked />
+                                    <label class="form-check-label" for="notice_periority">High</label>
+                                </div>
+                                <div class="form-check me-3">
+                                    <input class="form-check-input" type="radio" name="notice_periority" id="notice_periority" value="normal" />
+                                    <label class="form-check-label" for="notice_periority">Normal</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="notice_periority" id="notice_periority" value="low" />
+                                    <label class="form-check-label" for="notice_low">Low</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="notice_content">Write Notice</label>
+                            <div id="editor"></div>
+                            <input type="hidden" name="notice_content" id="notice_content" />
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-secondary">Upload Notice</button>
+                        <button type="button" class="btn btn-link text-gray-600 ms-auto" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="py-4">
+        <div class="d-flex justify-content-between w-100 flex-wrap mb-3 mb-lg-0">
+            <h1 class="h4">Notices</h1>
+            <button type="button" class="btn btn-block btn-gray-800 mb-3" data-bs-toggle="modal" data-bs-target="#notice-modal">Upload New Notice</button>
+        </div>
+    </div>
+
+
+    <div class="row">
+        <div class="col-12 mb-5">
+            <div class="card border-0 shadow components-section">
+                <div class="card-body">
+                    <h5 class="mb-5">Student Notices</h5>
+                    <div class="table-responsive">
+                        <table class="table table-centered table-nowrap mb-0 rounded">
+                            <thead class="thead-dark">
+                                <tr class="text-center">
+                                    <th class="border-0 rounded-start">#</th>
+                                    <th class="border-0">Title</th>
+                                    <th class="border-0">Roll</th>
+                                    <th class="border-0">Periority</th>
+                                    <th class="border-0">Content</th>
+                                    <th class="border-0 rounded-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="display_student_notices"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 mb-4">
+            <div class="card border-0 shadow components-section">
+                <div class="card-body">
+                    <h5 class="mb-5">Teacher Notices</h5>
+                    <div class="table-responsive">
+                        <table class="table table-centered table-nowrap mb-0 rounded">
+                            <thead class="thead-dark">
+                                <tr class="text-center">
+                                    <th class="border-0 rounded-start">#</th>
+                                    <th class="border-0">Title</th>
+                                    <th class="border-0">Roll</th>
+                                    <th class="border-0">Periority</th>
+                                    <th class="border-0">Content</th>
+                                    <th class="border-0 rounded-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="display_teacher_notices"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <%- include('../../components/footer'); %>
+</main>
+
+
+<%- include('../../../layout/footer'); %>
+<script src="/admin/pages/notices/notices.js"></script>

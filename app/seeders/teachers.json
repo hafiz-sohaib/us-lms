@@ -1,3 +1,11 @@
 {
-    "credentials": []
+    "credentials": [
+        {
+            "id": "64c0596be26da41d8d49e459",
+            "full_name": "Muhammad Atif Ghayas",
+            "username": "TS101",
+            "email": "smatif503@gmail.com",
+            "password": "@Lms-TS101"
+        }
+    ]
 }

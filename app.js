@@ -42,6 +42,8 @@ app.use(process.env.API_PREFIX, [
 	require('./app/apis/auth/auth-endpoints'),
 	require('./app/apis/students/student-endpoints'),
 	require('./app/apis/teachers/teacher-endpoints'),
+	require('./app/apis/notices/notice-endpoints'),
+	require('./app/apis/exams/exam-endpoints')
 ]);
 
 

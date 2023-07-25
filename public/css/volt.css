@@ -20252,17 +20252,6 @@ fieldset:disabled .btn {
     margin-top: .5rem
 }
 
-.components-section .badge,
-.components-section .btn,
-.components-section>.alert+.alert,
-.components-section>.nav+.nav,
-.components-section>.navbar+.navbar,
-.components-section>.progress+.btn,
-.components-section>.progress+.progress {
-    margin-top: .5rem;
-    margin-bottom: .5rem
-}
-
 .components-section .btn-group {
     margin-top: .5rem;
     margin-bottom: .5rem
