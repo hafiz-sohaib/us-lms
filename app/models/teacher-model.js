@@ -4,11 +4,6 @@ const { isEmail } = require('validator');
 
 const teacherSchema = new mongoose.Schema(
     {
-        teacher_roll_number: {
-            type: String,
-            required: [true, "Teacher Roll Number is required"],
-            unique: [true, "Roll Number should be unique"]
-        },
         teacher_name: {
             type: String,
             required: [true, "Teacher Name is required"],
@@ -31,12 +26,15 @@ const teacherSchema = new mongoose.Schema(
             required: [true, "Teacher CNIC is required"],
             unique: [true, "CNIC is unique"]
         },
-        teacher_year: {
-            type: String
-        },
-        teacher_address: {
+        teacher_scale: {
             type: String,
-            required: [true, "Teacher Address is required"]
+            enum: ['Assosiate Professor', 'Professor', 'Engineer'],
+            default: 'Engineer'
+        },
+        teacher_qualification: {
+            type: String,
+            enum: ['Masters', 'PhD'],
+            default: 'Masters'
         },
         teacher_profile: {
             type: String

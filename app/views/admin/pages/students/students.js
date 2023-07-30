@@ -1,183 +1,140 @@
-$('#student_form').submit(event => {
+const student_form = document.getElementById('student_form');
+const credential_form = document.getElementById('credential_form');
+const display_students = document.getElementById('display_students');
+const display_credentials = document.getElementById('display_credentials');
+const student_btn = document.querySelector('#student_form .btn');
+const credential_btn = document.querySelector('#credential_form .btn');
+
+
+
+// ==================== Add New Student ====================
+student_form.addEventListener('submit', async event => {
     event.preventDefault();
+    student_btn.innerHTML = loader();
+    student_btn.setAttribute('disabled', 'disabled');
 
-    const type = (event.target.student_id.value!=="") ? "PUT" : "POST";
-    const url = (event.target.student_id.value!=="") ? `/api/v1/students?id=${event.target.student_id.value}` : "/api/v1/students";
+    const type = (student_form.student_id.value !== "") ? "PUT" : "POST";
+    const url = (student_form.student_id.value !== "") ? `/api/v1/students?id=${student_form.student_id.value}` : "/api/v1/students";
 
-    $('#student_form .btn').html(`<div class="spinner-border spinner-border-sm text-light" role="status"><span class="visually-hidden">Loading...</span></div>`);
-    $('#student_form .btn').attr('disabled', 'disabled');
-
-    $.ajax({
-        type,
-        url,
-        data: $('#student_form').serialize(),
-        success: function (response) {
-            $('.text-danger').html("");
-
-            if (response.errors) {
-                $('#roll_error').html(response.errors.student_roll_number);
-                $('#name_error').html(response.errors.student_name);
-                $('#email_error').html(response.errors.student_email);
-                $('#phone_error').html(response.errors.student_phone);
-                $('#cnic_error').html(response.errors.student_cnic);
-                $('#year_error').html(response.errors.student_year);
-                $('#address_error').html(response.errors.student_address);
-
-                $('#student_form .btn').html('Update Student');
-                $('#student_form .btn').removeAttr('disabled');
-            }
-
-            if (response.success_message) {
-                if (type === "POST") {
-                    $.post("/api/v1/auth/sign-up", response.auth_data, result => {
-                        show_success_popup(response.success_message);
-                        $('#student_form')[0].reset();
-                        event.target.student_id.value = ""
-                        $('#student_roll_number').attr('readonly', false);
-                        $('#student_email').attr('readonly', false);
-                        $('#student_form .btn').html('Add Student');
-                        $('#student_form .btn').removeAttr('disabled');
-                    });
-                }else{
-                    show_success_popup(response.success_message);
-                    $('#student_form')[0].reset();
-                    event.target.student_id.value = ""
-                    $('#student_roll_number').attr('readonly', false);
-                    $('#student_email').attr('readonly', false);
-                    $('#student_form .btn').html('Add Student');
-                    $('#student_form .btn').removeAttr('disabled');
-                }
-
-                get_students();
-                get_students_credentials();
-            }
-        }
+    const response = await fetch(url, {
+        method: type,
+        headers: { 'Content-Type': 'application/json'},
+        body: JSON.stringify(Object.fromEntries(new FormData(student_form)))
     });
+
+    const result = await response.json();
+    document.querySelector('.text-danger').innerHTML = "";
+
+    if (result.errors) {
+        document.getElementById('roll_error').innerHTML = result.errors.student_roll_number;
+        document.getElementById('name_error').innerHTML = result.errors.student_name;
+        document.getElementById('email_error').innerHTML = result.errors.student_email;
+        document.getElementById('phone_error').innerHTML = result.errors.student_phone;
+        document.getElementById('cnic_error').innerHTML = result.errors.student_cnic;
+        document.getElementById('year_error').innerHTML = result.errors.student_year;
+        document.getElementById('address_error').innerHTML = result.errors.student_address;
+
+        student_btn.innerHTML = "Add Student";
+        student_btn.removeAttribute('disabled');
+    }
+
+    if (result.error_message) {
+        show_error_popup(result.error_message);
+        student_btn.innerHTML = "Add Student";
+        student_btn.removeAttribute('disabled');
+    }
+
+    if (result.success_message) {
+        show_success_popup(result.success_message);
+
+        student_form.reset();
+        student_form.student_id.value = ""
+        document.getElementById('student_roll_number').removeAttribute('readonly');
+        document.getElementById('student_email').removeAttribute('readonly');
+
+        student_btn.innerHTML = "Add Student";
+        student_btn.removeAttribute('disabled');
+        $('#student-modal').modal('hide');
+
+        get_students();
+        get_student_for_cred();
+        get_students_credentials();
+    }
 });
 
 
 
 
 
-function get_students() {
-    $('#display_students').html(student_loader());
+// ==================== Get Students ====================
+async function get_students(name = "", value = "") {
+    display_students.innerHTML = table_loader(8);
 
-    $.get("/api/v1/students", response => {
-        let output = "";
+    const url = (name != "" && value != "") ? `/api/v1/students?${name}=${value}` : "/api/v1/students";
+    const response = await fetch(url);
+    const result = await response.json();
+    let output = "";
 
-        if (response.students.length > 0) {
-            response.students.map((student, index) => {
-                output += `<tr class="align-middle">
-                    <td>${index+1}</td>
-                    <td>${student.student_name}</td>
-                    <td>${student.student_email}</td>
-                    <td>${student.student_roll_number}</td>
-                    <td>${student.student_year}</td>
-                    <td>${student.student_phone}</td>
-                    <td>${student.student_cnic}</td>
-                    <td>
-                        <button type="button" onclick="edit_student('${student._id}')" class="btn btn-gray-800">Edit</button>
-                        <button type="button" onclick="delete_student('${student._id}')" class="btn btn-gray-800 me-2">Delete</button>
-                    </td>
-                </tr>`;
-            })
-        }else{
-            output += `<tr>
-                <td colspan="8" class="text-center">No Student Found</td>
+    if (result.students.length > 0) {
+        result.students.map((student, index) => {
+            output += `<tr class="align-middle text-center">
+                <td>${index+1}</td>
+                <td>${student.student_name}</td>
+                <td>${student.student_email}</td>
+                <td>${student.student_roll_number}</td>
+                <td>${student.student_year}</td>
+                <td>${student.student_phone}</td>
+                <td>${student.student_cnic}</td>
+                <td>
+                    <button type="button" onclick="edit_student('${student._id}')" class="btn p-0 me-3"><i class="fa-solid fa-pen-to-square" style="font-size: 18px"></i></button>
+                    <button type="button" onclick="view_student('${student._id}')" class="btn p-0 me-3"><i class="fa-solid fa-eye" style="font-size: 18px"></i></button>
+                    <button type="button" onclick="delete_student('${student._id}')" class="btn p-0"><i class="fa-solid fa-trash" style="font-size: 18px"></i></button>
+                </td>
             </tr>`;
-        }
+        })
+    }else{
+        output += `<tr>
+            <td colspan="8" class="text-center fw-bold">No Student Found</td>
+        </tr>`;
+    }
 
-        $('#display_students').html(output);
-    });
+    display_students.innerHTML = output;
 }
 
 
 
 
 
-function get_students_credentials() {
-    $('#display_students_auth').html(student_loader());
-
-    $.get("/api/v1/students-cred", response => {
-        let output = "";
-        
-        if (response.credentials.length > 0) {
-            response.credentials.map((credentials, index) => {
-                output += `<tr class="align-middle text-center">
-                    <td>${index+1}</td>
-                    <td>${credentials.full_name}</td>
-                    <td>${credentials.username}</td>
-                    <td>${credentials.email}</td>
-                    <td>${credentials.password}</td>
-                    <td>
-                        <button type="button" onclick="send_credentials('${credentials.id}')" class="btn btn-gray-800 me-2">Send to Student</button>`;
-
-                        if ((response.auth[index]._id == credentials.id)) {
-                            if (response.auth[index].isBlocked === true) {
-                                output += `<button type="button" onclick="unblock_student('${credentials.id}')" class="btn btn-gray-800 me-2">Unblock</button>`;
-                            }else{
-                                output += `<button type="button" onclick="block_student('${credentials.id}')" class="btn btn-gray-800 me-2">Block</button>`;
-                            }
-                        }
-
-                    output +=`</td>
-                </tr>`;
-            })
-        }else{
-            output += `<tr>
-                <td colspan="8" class="text-center">No Credentials Found</td>
-            </tr>`;
-        }
-
-        $('#display_students_auth').html(output);
-    });
-}
+// ==================== Search Student ====================
+document.getElementById('search_box').addEventListener('keyup', async event => {
+    get_students("search", event.target.value);
+});
 
 
 
 
 
-function edit_student(id) {
-    const form = document.getElementById('student_form');
+// ==================== Edit Student ====================
+async function edit_student(id) {
+    const response = await fetch(`/api/v1/students?_id=${id}`);
+    const result = await response.json();
 
-    $.get(`/api/v1/students?_id=${id}`, response => {
-        if (response.students.length > 0) {
-            response.students.map(student => {
-                form.student_id.value = student._id;
-                form.student_roll_number.value = student.student_roll_number;
-                form.student_name.value = student.student_name;
-                form.student_email.value = student.student_email;
-                form.student_phone.value = student.student_phone;
-                form.student_cnic.value = student.student_cnic;
-                form.student_year.value = student.student_year;
-                form.student_address.value = student.student_address;
-
-                $('#student_name').focus();
-                $('#student_roll_number').attr('readonly', true);
-                $('#student_email').attr('readonly', true);
-                $('#student_form .btn').html("Update Student");
-            })
-        }
-    });
-}
-
-
-
-
-
-function delete_student(id) {
-    const confirmed = confirm('Are you sure to delete this student?');
-
-    if (confirmed) {
-        $.ajax({
-            type: "DELETE",
-            url: `/api/v1/students/${id}`,
-            success: function (response) {
-                show_success_popup(response.message);
-                get_students();
-                get_students_credentials();
-            }
+    if (result.students.length > 0) {
+        result.students.map(student => {
+            student_form.student_id.value = student._id;
+            student_form.student_roll_number.value = student.student_roll_number;
+            student_form.student_name.value = student.student_name;
+            student_form.student_email.value = student.student_email;
+            student_form.student_phone.value = student.student_phone;
+            student_form.student_cnic.value = student.student_cnic;
+            student_form.student_year.value = student.student_year;
+            student_form.student_address.value = student.student_address;
         });
+
+        document.getElementById('student_roll_number').setAttribute('readonly', true);
+        document.getElementById('student_email').setAttribute('readonly', true);
+        student_btn.innerHTML = "Update Student";
+        $('#student-modal').modal('show');
     }
 }
 
@@ -185,20 +142,23 @@ function delete_student(id) {
 
 
 
-function send_credentials(id) {
-    const confirmed = confirm('Are you sure to send to student?');
+// ==================== View Student ====================
+async function view_student(id) {
+    const response = await fetch(`/api/v1/students?_id=${id}`);
+    const result = await response.json();
 
-    if (confirmed) {
-        $.ajax({
-            type: "POST",
-            url: `/api/v1/students-cred-send`,
-            data: {id},
-            success: function (response) {
-                show_success_popup(response.message);
-                get_students();
-                get_students_credentials();
-            }
+    if (result.students.length > 0) {
+        result.students.map(student => {
+            document.getElementById('v_student_roll_number').value = student.student_roll_number;
+            document.getElementById('v_student_name').value = student.student_name;
+            document.getElementById('v_student_email').value = student.student_email;
+            document.getElementById('v_student_phone').value = student.student_phone;
+            document.getElementById('v_student_cnic').value = student.student_cnic;
+            document.getElementById('v_student_year').value = student.student_year;
+            document.getElementById('v_student_address').value = student.student_address;
         });
+
+        $('#student-view-modal').modal('show');
     }
 }
 
@@ -206,20 +166,22 @@ function send_credentials(id) {
 
 
 
-function block_student(id) {
+// ==================== Block Student ====================
+async function block_student(id) {
     const confirmed = confirm('Are you sure to block this student?');
 
     if (confirmed) {
-        $.ajax({
-            type: "PUT",
-            url: `/api/v1/auth/block`,
-            data: {id},
-            success: function (response) {
-                show_success_popup(response.message);
-                get_students();
-                get_students_credentials();
-            }
+        const response = await fetch(`/api/v1/auth/block/${id}`, {
+            method: "PUT",
+            headers: { 'Content-Type': 'application/json'}
         });
+
+        const result = await response.json();
+
+        show_success_popup(result.message);
+        get_students();
+        get_students_credentials();
+        get_student_for_cred();
     }
 }
 
@@ -227,20 +189,22 @@ function block_student(id) {
 
 
 
-function unblock_student(id) {
+// ==================== Unblock Student ====================
+async function unblock_student(id) {
     const confirmed = confirm('Are you sure to unblock this student?');
 
     if (confirmed) {
-        $.ajax({
-            type: "PUT",
-            url: `/api/v1/auth/unblock`,
-            data: {id},
-            success: function (response) {
-                show_success_popup(response.message);
-                get_students();
-                get_students_credentials();
-            }
+        const response = await fetch(`/api/v1/auth/unblock/${id}`, {
+            method: "PUT",
+            headers: { 'Content-Type': 'application/json'}
         });
+
+        const result = await response.json();
+
+        show_success_popup(result.message);
+        get_students();
+        get_students_credentials();
+        get_student_for_cred();
     }
 }
 
@@ -248,9 +212,166 @@ function unblock_student(id) {
 
 
 
-function student_loader() {
+// ==================== Delete Student ====================
+async function delete_student(id) {
+    const confirmed = confirm('Are you sure to delete this student?');
+
+    if (confirmed) {
+        const response = await fetch(`/api/v1/students/${id}`, { method: "DELETE"});
+        const result = await response.json();
+        show_success_popup(result.message);
+        get_students();
+        get_student_for_cred();
+        get_students_credentials();
+    }
+}
+
+
+
+
+
+// ==================== Get Students Name for Credentials ====================
+async function get_student_for_cred() {
+    const full_name = document.getElementById('full_name');
+    const response = await fetch("/api/v1/c-students");
+    const result = await response.json();
+    let output = "";
+
+    if (result.students.length > 0) {
+        output += `<option selected disabled>Select Student</option>`;
+        result.students.map(student => {
+            output += `<option value="${student._id}">${student.student_name}</option>`;
+        });
+    }else{
+        output += `<option>No Student Found</option>`;
+    }
+
+    full_name.innerHTML = output;
+}
+
+
+
+
+
+// ==================== Select Student Name ====================
+document.getElementById('full_name').addEventListener('change', async event => {
+    const response = await fetch(`/api/v1/students?_id=${event.target.value}`);
+    const result = await response.json();
+    
+    if (result.students.length > 0) {
+        result.students.map(student => {
+            document.querySelector('[name="full_name"]').value = student.student_name;
+            document.getElementById('email').value = student.student_email;
+        });
+    }else{
+        document.getElementById('email').value = "";
+    }
+})
+
+
+
+
+
+// ==================== Create Credentials for Student ====================
+credential_form.addEventListener('submit', async event => {
+    event.preventDefault();
+    credential_btn.innerHTML = loader();
+    credential_btn.setAttribute('disabled', 'disabled');
+
+    const response = await fetch("/api/v1/auth/sign-up", {
+        method: "POST",
+        headers: { 'Content-Type': 'application/json'},
+        body: JSON.stringify(Object.fromEntries(new FormData(credential_form)))
+    });
+
+    const result = await response.json();
+    document.querySelector('.text-danger').innerHTML = "";
+
+    if (result.errors) {
+        document.getElementById('full_name_error').innerHTML = result.errors.full_name;
+        document.getElementById('username_error').innerHTML = result.errors.username;
+        document.getElementById('emaill_error').innerHTML = result.errors.email;
+        document.getElementById('password_error').innerHTML = result.errors.password;
+
+        credential_btn.innerHTML = "Create Credentials";
+        credential_btn.removeAttribute('disabled');
+    }
+
+    if (result.error_message) {
+        show_error_popup(result.error_message);
+        credential_btn.innerHTML = "Create Credentials";
+        credential_btn.removeAttribute('disabled');
+    }
+
+    if (result.success_message) {
+        show_success_popup("Credentials successfully created");
+
+        credential_form.reset();
+        credential_btn.innerHTML = "Create Credentials";
+        credential_btn.removeAttribute('disabled');
+        $('#credentials-modal').modal('hide');
+        get_students_credentials();
+        get_student_for_cred();
+    }
+});
+
+
+
+
+
+// ==================== Get Students Credentials ====================
+async function get_students_credentials(name = "", value = "") {
+    display_credentials.innerHTML = table_loader(7);
+
+    const url = (name != "" && value != "") ? `/api/v1/auth/credentials?role=¥student¥&&${name}=${value}` : "/api/v1/auth/credentials?role=¥student¥";
+    const response = await fetch(url);
+    const result = await response.json();
+    let output = "";
+
+    if (result.credentials.length > 0) {
+        result.credentials.map((credential, index) => {
+            output += `<tr class="align-middle text-center">
+                <td>${index+1}</td>
+                <td>${credential.full_name}</td>
+                <td>${credential.username}</td>
+                <td>${credential.email}</td>
+                <td>${credential.role}</td>
+                <td>`;
+
+                if (credential.isBlocked === true) {
+                    output += `<button type="button" onclick="unblock_student('${credential._id}')" class="btn p-0"><i class="fa-solid fa-user-slash" style="font-size: 18px"></i></button>`;
+                }else{
+                    output += `<button type="button" onclick="block_student('${credential._id}')" class="btn p-0"><i class="fa-solid fa-user" style="font-size: 18px"></i></button>`;
+                }
+
+                output +=`</td>
+            </tr>`;
+        })
+    }else{
+        output += `<tr>
+            <td colspan="6" class="text-center fw-bold">No Credentials Found</td>
+        </tr>`;
+    }
+
+    display_credentials.innerHTML = output;
+}
+
+
+
+
+
+// ==================== Search Student Credentials ====================
+document.getElementById('cred_search_box').addEventListener('keyup', async event => {
+    get_students_credentials("search", event.target.value)
+});
+
+
+
+
+
+function table_loader(columns) {
     return `<tr>
-        <td colspan="8">
+        <td colspan="${columns}">
             <div class="d-flex justify-content-center">
                 <div class="spinner-border spinner-border-sm" role="status">
                     <span class="visually-hidden">Loading...</span>
@@ -262,5 +383,18 @@ function student_loader() {
 
 
 
+
+
+function loader() {
+    return `<div class="spinner-border spinner-border-sm text-light" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>`;
+}
+
+
+
+
+
 get_students();
+get_student_for_cred();
 get_students_credentials();

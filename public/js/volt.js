@@ -396,10 +396,10 @@ function show_success_popup(message) {
         position: {x: 'right', y: 'top'},
         types: [
             {
-                type: 'info',
-                background: '#0948B3',
+                type: 'success',
+                background: '#5cb85c',
                 icon: {
-                    className: 'fas fa-info-circle',
+                    className: 'fas fa-check-circle',
                     tagName: 'span',
                     color: '#fff'
                 },
@@ -408,7 +408,7 @@ function show_success_popup(message) {
         ]
     });
     
-    notyf.open({type: 'info', message});
+    notyf.success(message);
 }
 
 

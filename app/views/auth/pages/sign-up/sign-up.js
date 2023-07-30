@@ -1,26 +1,47 @@
-$('#signup_form').submit(event => { 
+const form = document.getElementById('signup_form');
+const btn = document.querySelector('#signup_form .btn');
+
+
+form.addEventListener('submit', async event => {
     event.preventDefault();
-    const form = $('#signup_form');
+    btn.innerHTML = loader();
+    btn.setAttribute('disabled', 'disabled');
 
-    $('#signup_form .btn').html(`<div class="spinner-border spinner-border-sm text-light" role="status"><span class="visually-hidden">Loading...</span></div>`);
-    $('#signup_form .btn').attr('disabled', 'disabled');
-
-    $.post("/api/v1/auth/sign-up", form.serialize(), response => {
-        if (response.success_message) {
-            show_success_popup(response.success_message);
-            form[0].reset(0);
-        }
-
-        if (response.errors) {
-            show_error_popup(`
-                ${response.errors.full_name ? response.errors.full_name+`<br>` : ''}
-                ${response.errors.username ? response.errors.username+`<br>` : ''}
-                ${response.errors.email ? response.errors.email+`<br>` : ''}
-                ${response.errors.password ? response.errors.password+`<br>` : ''}
-            `);
-        }
-
-        $('#signup_form .btn').html('Sign Up');
-        $('#signup_form .btn').removeAttr('disabled');
+    const response = await fetch("/api/v1/auth/sign-up", {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json'},
+        body: JSON.stringify(Object.fromEntries(new FormData(form)))
     });
+
+    const result = await response.json();
+
+    if (result.success_message) {
+        show_success_popup(result.success_message);
+        form.reset();
+        btn.innerHTML = 'Sign Up';
+        btn.removeAttribute('disabled');
+    }
+
+    if (result.errors) {
+        show_error_popup(`
+            ${result.errors.full_name ? result.errors.full_name+`<br>` : ''}
+            ${result.errors.username ? result.errors.username+`<br>` : ''}
+            ${result.errors.email ? result.errors.email+`<br>` : ''}
+            ${result.errors.password ? result.errors.password+`<br>` : ''}
+        `);
+
+        btn.innerHTML = 'Sign Up';
+        btn.removeAttribute('disabled');
+    }
 });
+
+
+
+
+
+
+function loader() {
+    return `<div class="spinner-border spinner-border-sm text-light" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>`;
+}

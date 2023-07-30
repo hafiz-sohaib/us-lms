@@ -1,18 +1,37 @@
-$('#signin_form').submit(event => { 
+const form = document.getElementById('signin_form');
+const btn = document.querySelector('#signin_form .btn');
+
+
+form.addEventListener('submit', async event => {
     event.preventDefault();
-    const form = $('#signin_form');
+    btn.innerHTML = loader();
+    btn.setAttribute('disabled', 'disabled');
 
-    $('#signin_form .btn').html(`<div class="spinner-border spinner-border-sm text-light" role="status"><span class="visually-hidden">Loading...</span></div>`);
-    $('#signin_form .btn').attr('disabled', 'disabled');
-
-    $.post("/api/v1/auth/sign-in", form.serialize(), response => {
-        if (response.error_message) {
-            show_error_popup(response.error_message);
-
-            $('#signin_form .btn').html('Sign Up');
-            $('#signin_form .btn').removeAttr('disabled');
-        }else{
-            location.reload();
-        }
+    const response = await fetch("/api/v1/auth/sign-in", {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json'},
+        body: JSON.stringify(Object.fromEntries(new FormData(form)))
     });
+
+    const result = await response.json();
+
+    if (result.error_message) {
+        show_error_popup(result.error_message);
+        form.reset();
+        btn.innerHTML = 'Sign Up';
+        btn.removeAttribute('disabled');
+    }else{
+        location.reload();
+    }
 });
+
+
+
+
+
+
+function loader() {
+    return `<div class="spinner-border spinner-border-sm text-light" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>`;
+}

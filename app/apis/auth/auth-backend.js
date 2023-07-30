@@ -1,35 +1,27 @@
 const Auth = require('../../models/auth-model');
-const { errorHandler, generateToken } = require('../../utils/utils');
-const fs = require('fs/promises');
+const { errorHandler, generateToken, sendEmail } = require('../../utils/utils');
 
 
 // ==================== Sign-Up ====================
 exports.sign_up = async (request, response) => {
     try {
-        const created = await Auth.create(request.body);
+        if (request.body.full_name === "Select Student") return response.json({error_message: "Please Select Student"});
 
-        const students_file = await fs.readFile('./app/seeders/students.json', 'utf8');
-        const existing_students = JSON.parse(students_file);
+        const { email } = await Auth.findOne({role: "¥admin¥"});
 
-        const teachers_file = await fs.readFile('./app/seeders/teachers.json', 'utf8');
-        const existing_teachers = JSON.parse(teachers_file);
-
-        const new_data = {
-            id: created._id,
-            full_name: created.full_name,
-            username: created.username,
-            email: created.email,
-            password: request.body.password,
+        const mail_data = {
+            from: process.env.EMAIL_ADDRESS,
+            to: [email, request.body.email],
+            subject: "Credentials",
+            html: `<h1>It's your crendentials</h1>
+            <h3>Username: ${request.body.username}<h5>
+            <h3>Password: ${request.body.password}</h3>
+            <p>Please visit this url <a href="http://localhost:4000/auth/sign-in">http://localhost:4000/auth/sign-in</a></p>`
         };
 
-        if (created.role === '¥teacher¥') {
-            existing_teachers.credentials.push(new_data);
-            await fs.writeFile('./app/seeders/teachers.json', JSON.stringify(existing_teachers, null, 4), 'utf8');
-        }else{
-            existing_students.credentials.push(new_data);
-            await fs.writeFile('./app/seeders/students.json', JSON.stringify(existing_students, null, 4), 'utf8');
-        }
+        sendEmail(mail_data);
 
+        await Auth.create(request.body);
         return response.json({success_message: "Sign-Up Successfull"});
     } catch (error) {
         const errors = errorHandler(error, 'auth');
@@ -68,10 +60,20 @@ exports.sign_in = async (request, response) => {
 
 
 // ==================== Credentails ====================
-exports.credentails = async (request, response) => {
+exports.credentials = async (request, response) => {
     try {
-        const credentails = await Auth.find({role: '¥student¥'});
-        return response.json({credentails});
+        let query = {};
+
+        if (request.query && request.query.role) {
+            query['role'] = request.query.role;
+        }
+
+        if (request.query && request.query.search) {
+            query['full_name'] = { $regex: request.query.search, $options: "i" };
+        }
+
+        const credentials = await Auth.find(query);
+        return response.json({credentials});
     } catch (error) {
         console.error(error);
         return response.status(500).json({ error: "Internal Server Error" });
@@ -97,7 +99,7 @@ exports.sign_out = async (request, response) => {
 
 exports.block = async (request, response) => {
     try {
-        await Auth.findByIdAndUpdate(request.body.id, { isBlocked: true });
+        await Auth.findByIdAndUpdate(request.params.id, { isBlocked: true });
         return response.json({ message: "Student Blocked Successfully" });
     } catch (error) {
         console.log(error);
@@ -110,7 +112,7 @@ exports.block = async (request, response) => {
 
 exports.unblock = async (request, response) => {
     try {
-        await Auth.findByIdAndUpdate(request.body.id, { isBlocked: false });
+        await Auth.findByIdAndUpdate(request.params.id, { isBlocked: false });
         return response.json({ message: "Student Unblocked Successfully" });
     } catch (error) {
         console.log(error);

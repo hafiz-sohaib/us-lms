@@ -1,23 +1,14 @@
 const Teachers = require('../../models/teacher-model');
 const Auth = require('../../models/auth-model');
-const { errorHandler, sendEmail } = require('../../utils/utils');
-const fs = require('fs/promises');
+const { errorHandler } = require('../../utils/utils');
 
 
 exports.add_teacher = async (request, response) => {
     try {
-        const teacher_data = {...request.body, teacher_profile: ""};
-        const teacher = await Teachers.create(teacher_data);
-
-        const auth_data = {
-            full_name: teacher.teacher_name,
-            username: teacher.teacher_roll_number,
-            email: teacher.teacher_email,
-            password: `@Lms-${teacher.teacher_roll_number}`,
-            role: '¥teacher¥'
-        };
-
-        return response.json({success_message: "Teacher Added Successfully", auth_data});
+        const isExist = await Auth.findOne({ email: request.body.teacher_email });
+        if (isExist) return response.json({ error_message: "This email already exist" });
+        await Teachers.create(request.body);
+        return response.json({success_message: "Teacher Added Successfully"});
     } catch (error) {
         const errors = errorHandler(error, 'teachers');
         return response.json({errors});
@@ -50,39 +41,19 @@ exports.get_teachers = async (request, response) => {
 
 
 
-exports.get_teachers_cred = async (request, response) => {
-    const teachers = await fs.readFile('./app/seeders/teachers.json', 'utf8');
-    const data = JSON.parse(teachers);
-    const auth = await Auth.find({role: '¥teacher¥'});
-    return response.json({credentials: data.credentials, auth});
-}
-
-
-
-
-
-exports.sned_cred = async (request, response) => {
+exports.get_teachers_for_cred = async (request, response, next) => {
     try {
-        const credentials = await Auth.findById(request.body.id);
-        const teachers = await fs.readFile('./app/seeders/teachers.json', 'utf8');
-        const data = JSON.parse(teachers);
-        const found_teacher = data.credentials.find(teacher => teacher.id == credentials._id);
+        const isExist = await Auth.find({role: '¥teacher¥'});
+        const teachers = await Teachers.find();
+        const result = [];
 
-        const mail_data = {
-            from: process.env.EMAIL_ADDRESS,
-            to: found_teacher.email,
-            subject: "Credentials",
-            html: `<h1>It's your crendentials</h1>
-            <h3>Username: ${found_teacher.username}<h5>
-            <h3>Password: ${found_teacher.password}</h3>
-            <p>Please visit this url <a href="http://localhost:4000/auth/sign-in">http://localhost:4000/auth/sign-in</a></p>`
-        };
+        teachers.map((teacher, index) => {
+            if (teacher.teacher_email !== ((isExist.length > 0) ? ((isExist.length < 2) ? isExist[0].email : isExist[index].email) : "")) result.push(teacher);
+        });
 
-        sendEmail(mail_data);
-        return response.json({message: "Successfully Sent"});
+        response.json({teachers: result});
     } catch (error) {
         console.log(error);
-        return response.json({message: "Sending Failed"});
     }
 }
 
@@ -92,8 +63,7 @@ exports.sned_cred = async (request, response) => {
 
 exports.update_teacher = async (request, response) => {
     try {
-        const data = {...request.body, teacher_profile: ""};
-        await Teachers.findByIdAndUpdate(request.query.id, data);
+        await Teachers.findByIdAndUpdate(request.query.id, request.body);
         return response.json({success_message: "Teacher Updated Successfully"});
     } catch (error) {
         const errors = errorHandler(error, 'teachers');
@@ -107,20 +77,8 @@ exports.update_teacher = async (request, response) => {
 
 exports.delete_teacher = async (request, response) => {
     try {
-        const teachers = await fs.readFile('./app/seeders/teachers.json', 'utf8');
-        const data = JSON.parse(teachers);
-        const email = {};
-        const teacher_index = data.credentials.findIndex(teacher => {
-            teacher.id === request.params.id;
-            email['email'] = teacher.email;
-        });
-
-        await Teachers.findByIdAndDelete(request.params.id);
-        await Auth.findOneAndDelete(email);
-
-        data.credentials.splice(teacher_index, 1);
-        await fs.writeFile('./app/seeders/teachers.json', JSON.stringify(data, null, 4), 'utf8');
-
+        const email = await Teachers.findByIdAndDelete(request.params.id);
+        await Auth.findOneAndDelete({email: email.teacher_email});
         return response.json({message: "Teacher deleted successfully"});
     } catch (error) {
         console.log(error);
