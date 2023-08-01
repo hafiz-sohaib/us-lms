@@ -321,7 +321,14 @@ async function get_teachers_credentials(name = "", value = "") {
     const url = (name != "" && value != "") ? `/api/v1/auth/credentials?role=¥teacher¥&&${name}=${value}` : "/api/v1/auth/credentials?role=¥teacher¥";
     const response = await fetch(url);
     const result = await response.json();
+
     let output = "";
+    let ind;
+
+    for (let index = 0; index < result.credentials.length; index++) {
+        const response_1 = await fetch(`/api/v1/auth/pass/${result.credentials[index]._id}`);
+        ind = await response_1.json();
+    }
 
     if (result.credentials.length > 0) {
         result.credentials.map((credential, index) => {
@@ -330,8 +337,13 @@ async function get_teachers_credentials(name = "", value = "") {
                 <td>${credential.full_name}</td>
                 <td>${credential.username}</td>
                 <td>${credential.email}</td>
-                <td>${credential.role}</td>
-                <td>`;
+                <td>${ind.pass.password}</td>`;
+
+                if (credential.role === '¥teacher¥') {
+                    output += `<td><span class="badge badge-lg bg-info m-0">Teacher</span></td>`;
+                }
+
+                output += `<td>`;
 
                 if (credential.isBlocked === true) {
                     output += `<button type="button" onclick="unblock_teacher('${credential._id}')" class="btn p-0"><i class="fa-solid fa-user-slash" style="font-size: 18px"></i></button>`;
@@ -344,7 +356,7 @@ async function get_teachers_credentials(name = "", value = "") {
         })
     }else{
         output += `<tr>
-            <td colspan="6" class="text-center fw-bold">No Credentials Found</td>
+            <td colspan="7" class="text-center fw-bold">No Credentials Found</td>
         </tr>`;
     }
 

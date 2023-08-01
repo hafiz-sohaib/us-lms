@@ -66,7 +66,7 @@ function get_exam_duties() {
                     <td>${exam.exam_shift}</td>
                     <td>${exam.exam_room}</td>
                     <td>
-                        <button type="button" onclick="delete_duty('${exam._id}')" class="btn btn-gray-800">Delete</button>
+                        <button type="button" onclick="delete_duty('${exam._id}')" class="btn p-0"><i class="fa-solid fa-trash" style="font-size: 18px"></i></button>
                     </td>
                 </tr>`;
             })

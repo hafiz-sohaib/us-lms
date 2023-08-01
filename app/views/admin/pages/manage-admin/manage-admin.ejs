@@ -1,0 +1,100 @@
+<%- include('../../../layout/header'); %>
+<%- include('../../components/mobile-nav'); %>
+<%- include('../../components/sidebar'); %>
+
+
+<main class="content" id="current_path" data-path="/admin<%= path %>">
+    <%- include('../../components/navbar'); %>
+
+    <!-- ========== Add / Update Admin Modal ========== -->
+    <div class="modal fade" id="admin-modal" tabindex="-1" aria-labelledby="admin-modal" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+            <div class="modal-content">
+
+                <form id="admin_form">
+                    <div class="modal-header">
+                        <h2 class="h6 modal-title">Add New Admin</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="full_name">Full Name</label>
+                            <input type="hidden" name="admin_id" />
+                            <input type="text" class="form-control" name="full_name" id="full_name" aria-describedby="name_error" minlength="3" required />
+                            <small id="name_error" class="form-text text-danger"></small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="username">Username</label>
+                            <input type="text" class="form-control" name="username" id="username" aria-describedby="username_error" required />
+                            <small id="username_error" class="form-text text-danger"></small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="email">Email</label>
+                            <input type="email" class="form-control" name="email" id="email" aria-describedby="email_error" required />
+                            <small id="email_error" class="form-text text-danger"></small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="password">Password</label>
+                            <input type="text" class="form-control" name="password" id="password" aria-describedby="password_error" required />
+                            <small id="password_error" class="form-text text-danger"></small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-secondary">Add Admin</button>
+                        <button type="button" class="btn btn-link text-gray-600 ms-auto" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="py-4">
+        <h1 class="h4 mb-0">Manage Other Admins</h1>
+    </div>
+
+
+    <div class="row">
+        <div class="col-12 mb-5">
+            <div class="card border-0 shadow components-section">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between w-100 flex-wrap mb-4">
+                        <h5 class="h5 mb-0">Show All Admins</h5>
+                        <div class="d-flex align-items-center" style="width: 445px;">
+                            <input type="text" class="form-control me-3" id="search_box" placeholder="Search..." style="width: 250px;" />
+                            <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#admin-modal">
+                                <i class="fa-solid fa-plus me-2"></i>
+                                Add New Admin
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-centered table-nowrap mb-0 rounded">
+                            <thead class="thead-dark">
+                                <tr class="text-center">
+                                    <th class="border-0 rounded-start">#</th>
+                                    <th class="border-0">Full Name</th>
+                                    <th class="border-0">Username</th>
+                                    <th class="border-0">Email</th>
+                                    <th class="border-0">Password</th>
+                                    <th class="border-0">Role</th>
+                                    <th class="border-0 rounded-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="display_admins"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <%- include('../../components/footer'); %>
+</main>
+
+
+<%- include('../../../layout/footer'); %>
+<script src="/admin/pages/manage-admin/manage-admin.js"></script>

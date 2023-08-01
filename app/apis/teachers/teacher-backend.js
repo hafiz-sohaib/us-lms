@@ -1,5 +1,6 @@
 const Teachers = require('../../models/teacher-model');
 const Auth = require('../../models/auth-model');
+const Pass = require('../../models/pass-model');
 const { errorHandler } = require('../../utils/utils');
 
 
@@ -78,7 +79,8 @@ exports.update_teacher = async (request, response) => {
 exports.delete_teacher = async (request, response) => {
     try {
         const email = await Teachers.findByIdAndDelete(request.params.id);
-        await Auth.findOneAndDelete({email: email.teacher_email});
+        const auth = await Auth.findOneAndDelete({email: email.teacher_email});
+        await Pass.findOneAndDelete({id: auth._id});
         return response.json({message: "Teacher deleted successfully"});
     } catch (error) {
         console.log(error);

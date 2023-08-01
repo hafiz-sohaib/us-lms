@@ -21,6 +21,11 @@ exports.teachers = async (request, response) => {
     response.render('admin/pages/teachers/teachers', {title: "Manage Teachers", path});
 }
 
+exports.manage_admin = async (request, response) => {
+    const path = request.path;
+    response.render('admin/pages/manage-admin/manage-admin', {title: "Manage Admin", path});
+}
+
 exports.upload_notices = async (request, response) => {
     const path = request.path;
     response.render('admin/pages/notices/notices', {title: "Upload Notices", path});
