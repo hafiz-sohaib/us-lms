@@ -328,11 +328,12 @@ async function get_students_credentials(name = "", value = "") {
     const result = await response.json();
 
     let output = "";
-    let ind;
+    let password;
 
     for (let index = 0; index < result.credentials.length; index++) {
         const response_1 = await fetch(`/api/v1/auth/pass/${result.credentials[index]._id}`);
-        ind = await response_1.json();
+        const pass = await response_1.json();
+        password = ((pass.pass !== null) ? pass.pass.password : "");
     }
 
     if (result.credentials.length > 0) {
@@ -342,7 +343,7 @@ async function get_students_credentials(name = "", value = "") {
                 <td>${credential.full_name}</td>
                 <td>${credential.username}</td>
                 <td>${credential.email}</td>
-                <td>${ind.pass.password}</td>`;
+                <td>${password}</td>`;
 
                 if (credential.role === '¥student¥') {
                     output += `<td><span class="badge badge-lg bg-info m-0">Student</span></td>`;

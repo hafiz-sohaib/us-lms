@@ -1,0 +1,39 @@
+<%- include('../../../layout/header'); %>
+
+<%- include('../../../layout/header'); %>
+<%- include('../../components/mobile-nav'); %>
+<%- include('../../components/sidebar'); %>
+
+
+<main class="content" id="current_path" data-path="/student<%= path %>">
+    <%- include('../../components/navbar'); %>
+
+    <div class="row py-4">
+        <div class="col-12">
+            <div class="card card-body border-0 shadow mb-4">
+                <h2 class="h5 mb-4">Personal information</h2>
+                <form>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div><label for="first_name">Full Name</label> <input class="form-control" id="first_name"
+                                    type="text" value="<%= user.full_name %>" placeholder="Enter your first name" required=""></div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div><label for="last_name">Username</label> <input class="form-control" id="last_name"
+                                    type="text" value="<%= user.username %>" placeholder="Also your last name" required=""></div>
+                        </div>
+                    </div>
+                    <div class="row align-items-center">
+                        <div class="col-md-6 mb-3">
+                            <div><label for="last_name">Email</label> <input class="form-control" id="last_name"
+                                type="text" value="<%= user.email %>" placeholder="Also your last name" required=""></div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</main>
+
+
+<%- include('../../../layout/footer'); %>

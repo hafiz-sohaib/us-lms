@@ -9,26 +9,21 @@ exports.sign_up = async (request, response) => {
         if (request.body.full_name === "Select Student") return response.json({error_message: "Please Select Student"});
         if (request.body.full_name === "Select Teacher") return response.json({error_message: "Please Select Teacher"});
 
-        const admin = await Auth.findOne({role: "¥admin¥"});
+        const mail_data = {
+            from: process.env.EMAIL_ADDRESS,
+            to: request.body.email,
+            subject: "Credentials",
+            html: `<h1>It's your crendentials</h1>
+            <h3>Username: ${request.body.username}<h5>
+            <h3>Password: ${request.body.password}</h3>
+            <p>Please visit this url <a href="http://localhost:4000/auth/sign-in">http://localhost:4000/auth/sign-in</a></p>`
+        };
 
-        if (admin !== null) {
-            const mail_data = {
-                from: process.env.EMAIL_ADDRESS,
-                to: [admin.email, request.body.email],
-                subject: "Credentials",
-                html: `<h1>It's your crendentials</h1>
-                <h3>Username: ${request.body.username}<h5>
-                <h3>Password: ${request.body.password}</h3>
-                <p>Please visit this url <a href="http://localhost:4000/auth/sign-in">http://localhost:4000/auth/sign-in</a></p>`
-            };
-    
-            sendEmail(mail_data);
-        }
-        else{
-            const created = await Auth.create(request.body);
-            await Pass.create({ id: created._id, password: request.body.password });
-            return response.json({ success_message: "Sign-Up Successfull" });
-        }
+        sendEmail(mail_data);
+
+        const created = await Auth.create(request.body);
+        await Pass.create({ id: created._id, password: request.body.password });
+        return response.json({ success_message: "Sign-Up Successfull" });
     } catch (error) {
         const errors = errorHandler(error, 'auth');
         return response.json({errors});
